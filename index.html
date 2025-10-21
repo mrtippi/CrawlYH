@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Yahoo News AI Crawler - Bảng Điều Khiển</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(15, 52, 96, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #4ecca3;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header .status {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(78, 204, 163, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #4ecca3;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #4ecca3;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: rgba(22, 33, 62, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(78, 204, 163, 0.1);
+        }
+
+        .panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #4ecca3;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 52, 96, 0.5);
+            border: 1px solid rgba(78, 204, 163, 0.3);
+            border-radius: 6px;
+            color: #eee;
+            font-size: 1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-list label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .checkbox-list label:hover {
+            background: rgba(78, 204, 163, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4ecca3 0%, #3eb893 100%);
+            color: #1a1a2e;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 204, 163, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            border: 1px solid #e94560;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(233, 69, 96, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(15, 52, 96, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(78, 204, 163, 0.2);
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4ecca3;
+        }
+
+        .article-card {
+            background: rgba(15, 52, 96, 0.3);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid rgba(78, 204, 163, 0.2);
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .article-card:hover {
+            border-color: #4ecca3;
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(78, 204, 163, 0.2);
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .article-title {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 0.75rem;
+        }
+
+        .article-summary {
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .article-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .tag {
+            background: rgba(78, 204, 163, 0.2);
+            color: #4ecca3;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .quality-score {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .score-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(78, 204, 163, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecca3, #3eb893);
+            transition: width 0.5s;
+        }
+
+        .trending-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(78, 204, 163, 0.2);
+        }
+
+        .trending-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ecca3;
+            width: 40px;
+        }
+
+        .trending-content {
+            flex: 1;
+        }
+
+        .trending-topic {
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .trending-stats {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .trending-arrow {
+            font-size: 1.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: rgba(15, 52, 96, 0.3);
+            border: 1px solid rgba(78, 204, 163, 0.2);
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(78, 204, 163, 0.2);
+            border-color: #4ecca3;
+            color: #4ecca3;
+        }
+
+        .notification {
+            background: rgba(78, 204, 163, 0.1);
+            border-left: 4px solid #4ecca3;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-left: 2px solid #4ecca3;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .log-time {
+            color: #4ecca3;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(78, 204, 163, 0.3);
+            border-top: 3px solid #4ecca3;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(78, 204, 163, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(78, 204, 163, 0.8);
+        }
+
+        /* Smooth scrolling */
+        * {
+            scroll-behavior: smooth;
+        }
+
+        /* Pagination button transitions */
+        .pagination-btn {
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 204, 163, 0.3);
+        }
+
+        .pagination-btn:active {
+            transform: translateY(0);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal Popup */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            margin: 2% auto;
+            padding: 0;
+            border: 2px solid #4ecca3;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s;
+            box-shadow: 0 10px 50px rgba(78, 204, 163, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: rgba(15, 52, 96, 0.5);
+            padding: 1.5rem;
+            border-bottom: 2px solid rgba(78, 204, 163, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .close-btn {
+            color: #e94560;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #ff6b82;
+            transform: rotate(90deg);
+        }
+
+        .modal-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #4ecca3;
+        }
+
+        .modal-section h3 {
+            color: #4ecca3;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comment-item {
+            background: rgba(15, 52, 96, 0.5);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid rgba(78, 204, 163, 0.5);
+        }
+
+        .comment-author {
+            color: #4ecca3;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-text {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .comment-meta {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🤖 Yahoo News AI Crawler - Bảng Điều Khiển</h1>
+        <div class="status">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span id="connectionStatus">🔴 Chưa kết nối</span>
+            </div>
+            <div class="status-indicator" style="margin-left: 1rem;">
+                <span id="crawlerStatus">⏸️ Đã dừng</span>
+            </div>
+            <button onclick="exportData()" style="background: rgba(78, 204, 163, 0.2); color: #4ecca3; border: 1px solid #4ecca3; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; margin-left: 1rem;">📥 Export Excel</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Sidebar - Control Panel -->
+        <div>
+            <div class="panel">
+                <h2>🎯 Cài Đặt Crawl</h2>
+
+                <div class="control-group">
+                    <label>Từ Khóa Tìm Kiếm</label>
+                    <select>
+                        <option selected>大谷翔平</option>
+                        <option>ダルビッシュ有</option>
+                        <option>田中将大</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Chế Độ</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="mode" value="single" checked>
+                            <span>Một Lần</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="mode" value="continuous">
+                            <span>Liên Tục</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Khoảng Thời Gian (phút)</label>
+                    <input type="number" value="30">
+                </div>
+
+                <div class="control-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" checked>
+                        <span>Chế Độ Ẩn Browser</span>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" id="startCrawlerBtn" onclick="startCrawler()">🚀 Bắt Đầu Crawl</button>
+                <button class="btn btn-secondary" id="stopCrawlerBtn" onclick="stopCrawler()">⏹️ Dừng Lại</button>
+            </div>
+
+            <div class="panel" style="margin-top: 1.5rem;">
+                <h2>🤖 Tính Năng AI</h2>
+
+                <div class="checkbox-list">
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>✨ Tóm Tắt Tự Động</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>😊 Phân Tích Cảm Xúc</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>🔥 Phát Hiện Xu Hướng</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>🏷️ Phân Loại Tự Động</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>⭐ Đánh Giá Chất Lượng</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" checked>
+                        <span>📊 Báo Cáo Hàng Ngày</span>
+                    </label>
+                </div>
+
+                <div class="control-group" style="margin-top: 1rem;">
+                    <label>Số Bài/Lần</label>
+                    <select>
+                        <option>5</option>
+                        <option selected>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(78, 204, 163, 0.1); border-radius: 6px; text-align: center;">
+                    <div style="font-size: 0.85rem; color: #aaa;">Chi Phí AI Hôm Nay</div>
+                    <div style="font-size: 1.5rem; color: #4ecca3; font-weight: bold;">$0.0325</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Articles -->
+        <div>
+            <div class="panel" style="height: calc(100vh - 120px); display: flex; flex-direction: column;">
+                <div class="tabs">
+                    <div class="tab active">📰 Bài Viết</div>
+                    <div class="tab">📊 Phân Tích</div>
+                    <div class="tab">⚙️ Nhật Ký</div>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px; position: relative;">
+                        <input type="text" id="searchInput" placeholder="🔍 Tìm kiếm bài viết..." style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: rgba(15, 52, 96, 0.5); border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 6px; color: #eee; font-size: 0.95rem;">
+                        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #aaa;">🔍</span>
+                    </div>
+
+                    <select id="categoryFilter" style="padding: 0.75rem; background: rgba(15, 52, 96, 0.5); border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 6px; color: #eee; font-size: 0.95rem; min-width: 150px;">
+                        <option value="all">🏷️ Tất Cả Danh Mục</option>
+                        <option value="performance">Performance</option>
+                        <option value="mvp">MVP</option>
+                        <option value="team">Team News</option>
+                        <option value="record">Record Breaking</option>
+                    </select>
+
+                    <input type="date" id="dateFilter" style="padding: 0.75rem; background: rgba(15, 52, 96, 0.5); border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 6px; color: #eee; font-size: 0.95rem; min-width: 150px;">
+
+                    <select id="sortFilter" style="padding: 0.75rem; background: rgba(15, 52, 96, 0.5); border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 6px; color: #eee; font-size: 0.95rem; min-width: 150px;">
+                        <option value="newest">📅 Mới Nhất</option>
+                        <option value="quality">⭐ Chất Lượng Cao</option>
+                        <option value="comments">💬 Nhiều Comments</option>
+                    </select>
+                </div>
+
+                <div class="notification">
+                    <div class="loading-spinner"></div>
+                    <div>
+                        <strong>Đang crawl...</strong>
+                        <div style="font-size: 0.9rem; color: #aaa; margin-top: 0.25rem;">Đã tìm thấy <span id="articleCount">15</span> bài mới</div>
+                    </div>
+                </div>
+
+                <!-- Scrollable Articles Container -->
+                <div id="articlesContainer" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 0.5rem;">
+                <!-- Article Card 1 -->
+                <div class="article-card">
+                    <div class="article-header">
+                        <div style="flex: 1;">
+                            <div class="article-title">📰 Giải thưởng 'Battery xuất sắc nhất' năm 2025</div>
+                            <div class="article-meta">
+                                <span>⏰ 10/21(火) 17:00</span>
+                                <span>💬 0 comments</span>
+                                <span>📌 Yahoo News</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="article-summary">
+                        🤖 <strong>AI Summary:</strong> Giải thưởng 'Battery xuất sắc nhất' năm 2025 đã được trao cho cặp đôi pitcher-catcher Murakami Shoki - Sakamoto Seishiro của đội Hanshin Tigers (Central League) và cặp Ito Daikai - Fushimi Torai của Nippon Ham Fighters (Pacific League)...
+                    </div>
+
+                    <div class="article-tags">
+                        <span class="tag">Performance</span>
+                        <span class="tag">Award</span>
+                        <span class="tag">Pitching</span>
+                    </div>
+
+                    <div class="quality-score">
+                        <span style="font-size: 0.85rem; color: #aaa;">Chất Lượng:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: 78%"></div>
+                        </div>
+                        <span style="font-weight: bold; color: #4ecca3;">7.8/10</span>
+                    </div>
+                </div>
+
+                <!-- Article Card 2 -->
+                <div class="article-card">
+                    <div class="article-header">
+                        <div style="flex: 1;">
+                            <div class="article-title">🏆 Ohtani giành danh hiệu MVP sau màn trình diễn lịch sử</div>
+                            <div class="article-meta">
+                                <span>⏰ 10/21(火) 16:58</span>
+                                <span>💬 156 comments</span>
+                                <span>📌 Yahoo News</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="article-summary">
+                        🤖 <strong>AI Summary:</strong> Ohtani của Dodgers đã giành danh hiệu MVP trong trận chung kết National League sau màn trình diễn lịch sử với 3 home run và 10 strikeout. Ron Darling đã dành những lời khen ngợi cho phong độ phi thường...
+                    </div>
+
+                    <div class="article-tags">
+                        <span class="tag">Performance</span>
+                        <span class="tag">MVP</span>
+                        <span class="tag">Record Breaking</span>
+                        <span class="tag">Home Run</span>
+                    </div>
+
+                    <div class="quality-score">
+                        <span style="font-size: 0.85rem; color: #aaa;">Chất Lượng:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: 85%"></div>
+                        </div>
+                        <span style="font-weight: bold; color: #4ecca3;">8.5/10</span>
+                    </div>
+
+                    <div style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(78, 204, 163, 0.1); border-radius: 6px;">
+                        <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">😊 <strong>Phân Tích Cảm Xúc:</strong></div>
+                        <div style="display: flex; gap: 0.5rem; font-size: 0.85rem;">
+                            <span>👍 Tích Cực: 85%</span>
+                            <span>😐 Trung Lập: 12%</span>
+                            <span>👎 Tiêu Cực: 3%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Article Card 3 -->
+                <div class="article-card">
+                    <div class="article-header">
+                        <div style="flex: 1;">
+                            <div class="article-title">💪 Ohtani đặt biển 'TEAM EFFORT' trên cúp MVP</div>
+                            <div class="article-meta">
+                                <span>⏰ 10/21(火) 16:52</span>
+                                <span>💬 89 comments</span>
+                                <span>📌 Yahoo News</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="article-summary">
+                        🤖 <strong>AI Summary:</strong> Chiếc cúp MVP NLCS của Shohei Ohtani được trưng bày tại câu lạc bộ Dodgers đang gây chú ý vì có một tấm biển ghi 'Team Effort' (Nỗ lực của cả đội) đặt trên phần khắc tên của anh...
+                    </div>
+
+                    <div class="article-tags">
+                        <span class="tag">Team News</span>
+                        <span class="tag">Personal</span>
+                        <span class="tag">MVP</span>
+                    </div>
+
+                    <div class="quality-score">
+                        <span style="font-size: 0.85rem; color: #aaa;">Chất Lượng:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: 75%"></div>
+                        </div>
+                        <span style="font-weight: bold; color: #4ecca3;">7.5/10</span>
+                    </div>
+                </div>
+
+                <!-- Load More & Pagination -->
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(15, 52, 96, 0.3); border-radius: 8px; text-align: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="color: #aaa; font-size: 0.9rem;">
+                            Hiển thị <span id="showingCount">3</span> / <span id="totalCount">127</span> bài viết
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button id="prevPage" class="pagination-btn" style="padding: 0.5rem 1rem; background: rgba(78, 204, 163, 0.2); border: 1px solid rgba(78, 204, 163, 0.5); border-radius: 6px; color: #4ecca3; cursor: pointer; font-size: 0.9rem;">← Trước</button>
+                            <span style="color: #4ecca3; font-weight: bold; margin: 0 0.5rem;">Trang <span id="currentPage">1</span> / <span id="totalPages">43</span></span>
+                            <button id="nextPage" class="pagination-btn" style="padding: 0.5rem 1rem; background: rgba(78, 204, 163, 0.2); border: 1px solid rgba(78, 204, 163, 0.5); border-radius: 6px; color: #4ecca3; cursor: pointer; font-size: 0.9rem;">Sau →</button>
+                        </div>
+                    </div>
+                    <button id="loadMore" class="btn btn-primary" style="width: 100%; font-size: 0.95rem; padding: 0.75rem;">
+                        🔄 Tải Thêm Bài Viết
+                    </button>
+                </div>
+
+                </div> <!-- End Scrollable Container -->
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Stats & Insights -->
+        <div>
+            <div class="panel">
+                <h2>📊 Thống Kê Trực Tiếp</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">Tổng Bài Viết</div>
+                        <div class="value" id="totalArticles">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Mới Hôm Nay</div>
+                        <div class="value" id="newToday">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Có Comments</div>
+                        <div class="value" id="withComments">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Đang Chờ</div>
+                        <div class="value" id="pendingCount">0</div>
+                    </div>
+                </div>
+
+                <div style="padding: 1rem; background: rgba(78, 204, 163, 0.1); border-radius: 8px; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: #aaa; font-size: 0.9rem;">Tổng Comments</span>
+                        <span id="totalComments" style="color: #4ecca3; font-weight: bold;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: #aaa; font-size: 0.9rem;">AI Đã Phân Tích</span>
+                        <span id="aiEnhanced" style="color: #4ecca3; font-weight: bold;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #aaa; font-size: 0.9rem;">Chi Phí AI</span>
+                        <span id="aiCost" style="color: #4ecca3; font-weight: bold;">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 1.5rem;">
+                <h2>🔥 Đang Hot</h2>
+
+                <div class="trending-item">
+                    <div class="trending-rank">1</div>
+                    <div class="trending-content">
+                        <div class="trending-topic">Ohtani MVP</div>
+                        <div class="trending-stats">📊 15 lần nhắc đến</div>
+                    </div>
+                    <div class="trending-arrow" style="color: #4ecca3;">↑</div>
+                </div>
+
+                <div class="trending-item">
+                    <div class="trending-rank">2</div>
+                    <div class="trending-content">
+                        <div class="trending-topic">World Series</div>
+                        <div class="trending-stats">📊 12 lần nhắc đến</div>
+                    </div>
+                    <div class="trending-arrow" style="color: #4ecca3;">↑</div>
+                </div>
+
+                <div class="trending-item">
+                    <div class="trending-rank">3</div>
+                    <div class="trending-content">
+                        <div class="trending-topic">Kỷ Lục Home Run</div>
+                        <div class="trending-stats">📊 8 lần nhắc đến</div>
+                    </div>
+                    <div class="trending-arrow" style="color: #aaa;">─</div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 1.5rem;">
+                <h2>📅 Báo Cáo Hôm Nay</h2>
+
+                <div style="background: rgba(15, 52, 96, 0.3); padding: 1rem; border-radius: 8px; border-left: 3px solid #4ecca3;">
+                    <div style="font-size: 0.9rem; color: #ccc; line-height: 1.6;">
+                        <strong style="color: #4ecca3;">Tóm Tắt:</strong><br>
+                        Đã crawl 15 bài viết hôm nay. Thành tích MVP của Ohtani là chủ đề nóng nhất với cảm xúc tích cực áp đảo. Điểm chất lượng trung bình: 7.8/10.
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 1rem; font-size: 0.9rem; padding: 0.75rem;">
+                    📄 Xem Báo Cáo Đầy Đủ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Detail Modal -->
+    <div id="articleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" style="color: #fff; margin: 0;">📰 Chi Tiết Bài Viết</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Article Info -->
+                <div class="modal-section">
+                    <h3>📋 Thông Tin Bài Viết</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <div style="color: #aaa; font-size: 0.85rem;">⏰ Thời Gian</div>
+                            <div id="modalDate" style="color: #4ecca3; font-size: 1.1rem; margin-top: 0.25rem;">10/21(火) 16:58</div>
+                        </div>
+                        <div>
+                            <div style="color: #aaa; font-size: 0.85rem;">💬 Comments</div>
+                            <div id="modalComments" style="color: #4ecca3; font-size: 1.1rem; margin-top: 0.25rem;">0</div>
+                        </div>
+                        <div>
+                            <div style="color: #aaa; font-size: 0.85rem;">📰 Nguồn</div>
+                            <div id="modalSource" style="color: #4ecca3; font-size: 1.1rem; margin-top: 0.25rem;">Yahoo News Japan</div>
+                        </div>
+                        <div>
+                            <div style="color: #aaa; font-size: 0.85rem;">⭐ Chất Lượng</div>
+                            <div id="modalQuality" style="color: #4ecca3; font-size: 1.1rem; margin-top: 0.25rem;">8.5/10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Summary -->
+                <div class="modal-section">
+                    <h3>🤖 Tóm Tắt AI</h3>
+                    <p id="modalSummary" style="color: #ccc; line-height: 1.8; margin-top: 1rem;">
+                        Ohtani của Dodgers đã giành danh hiệu MVP trong trận chung kết National League sau màn trình diễn lịch sử với 3 home run và 10 strikeout. Ron Darling đã dành những lời khen ngợi cho phong độ phi thường của Ohtani...
+                    </p>
+                    <div style="margin-top: 1rem;">
+                        <strong style="color: #4ecca3;">📝 Điểm Chính:</strong>
+                        <ul id="modalKeyPoints" style="margin-top: 0.5rem; margin-left: 1.5rem; color: #ccc; line-height: 2;">
+                            <li>Ohtani đạt thành tích 3 home run và 10 strikeout</li>
+                            <li>Một trong những cú đánh đạt khoảng cách 143m</li>
+                            <li>Ron Darling nhận xét chưa từng thấy màn trình diễn nào như vậy</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Categories & Tags -->
+                <div class="modal-section">
+                    <h3>🏷️ Phân Loại</h3>
+                    <div id="modalCategories" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+                        <span class="tag">Performance</span>
+                        <span class="tag">MVP</span>
+                        <span class="tag">Record Breaking</span>
+                        <span class="tag">Home Run</span>
+                    </div>
+                </div>
+
+                <!-- Sentiment Analysis -->
+                <div class="modal-section">
+                    <h3>😊 Phân Tích Cảm Xúc</h3>
+                    <div style="display: flex; gap: 2rem; margin-top: 1rem; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="color: #aaa;">👍 Tích Cực</span>
+                                    <span id="sentimentPositive" style="color: #4ecca3; font-weight: bold;">0%</span>
+                                </div>
+                                <div style="height: 8px; background: rgba(78, 204, 163, 0.2); border-radius: 4px;">
+                                    <div class="sentiment-bar" style="width: 0%; height: 100%; background: #4ecca3; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="color: #aaa;">😐 Trung Lập</span>
+                                    <span id="sentimentNeutral" style="color: #aaa; font-weight: bold;">0%</span>
+                                </div>
+                                <div style="height: 8px; background: rgba(170, 170, 170, 0.2); border-radius: 4px;">
+                                    <div class="sentiment-bar" style="width: 0%; height: 100%; background: #aaa; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="color: #aaa;">👎 Tiêu Cực</span>
+                                    <span id="sentimentNegative" style="color: #e94560; font-weight: bold;">0%</span>
+                                </div>
+                                <div style="height: 8px; background: rgba(233, 69, 96, 0.2); border-radius: 4px;">
+                                    <div class="sentiment-bar" style="width: 0%; height: 100%; background: #e94560; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 4rem;">😊</div>
+                            <div style="color: #4ecca3; font-weight: bold; font-size: 1.2rem;">Tích Cực</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="modal-section">
+                    <h3>💬 Bình Luận Nổi Bật</h3>
+                    <div id="modalCommentsList" style="margin-top: 1rem;">
+                        <div class="comment-item">
+                            <div class="comment-author">👤 User123</div>
+                            <div class="comment-text">Ohtani thật sự là một hiện tượng! Chưa ai có thể làm được như anh ấy - vừa đánh hay vừa ném hay!</div>
+                            <div class="comment-meta">
+                                <span>⏰ 2 giờ trước</span>
+                                <span>👍 124 likes</span>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-author">👤 BaseballFan2024</div>
+                            <div class="comment-text">Màn trình diễn lịch sử! Cú home run 143m quá khủng khiếp!</div>
+                            <div class="comment-meta">
+                                <span>⏰ 3 giờ trước</span>
+                                <span>👍 98 likes</span>
+                            </div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-author">👤 SportsAnalyst</div>
+                            <div class="comment-text">Dodgers rất may mắn khi có Ohtani. Anh ấy là chìa khóa cho chức vô địch World Series năm nay.</div>
+                            <div class="comment-meta">
+                                <span>⏰ 4 giờ trước</span>
+                                <span>👍 76 likes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; font-size: 0.9rem; padding: 0.75rem;">
+                        📖 Xem Tất Cả 156 Bình Luận
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="window.open('#', '_blank')">
+                        🔗 Mở Bài Gốc
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal()">
+                        ✖️ Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chuyển đổi tab đơn giản
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        // Article data và pagination
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let allArticles = [];
+
+        // Lấy tất cả article cards
+        function getAllArticles() {
+            return Array.from(document.querySelectorAll('.article-card'));
+        }
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const articles = getAllArticles();
+
+            let visibleCount = 0;
+            articles.forEach(article => {
+                const title = article.querySelector('.article-title').textContent.toLowerCase();
+                const summary = article.querySelector('.article-summary').textContent.toLowerCase();
+
+                if (title.includes(searchTerm) || summary.includes(searchTerm)) {
+                    article.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+
+            document.getElementById('showingCount').textContent = visibleCount;
+            document.getElementById('articleCount').textContent = visibleCount;
+        });
+
+        // Category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        categoryFilter.addEventListener('change', (e) => {
+            const category = e.target.value;
+            const articles = getAllArticles();
+
+            let visibleCount = 0;
+            articles.forEach(article => {
+                const tags = article.querySelectorAll('.tag');
+                const tagTexts = Array.from(tags).map(tag => tag.textContent.toLowerCase());
+
+                if (category === 'all' || tagTexts.some(tag => tag.includes(category))) {
+                    article.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+
+            document.getElementById('showingCount').textContent = visibleCount;
+        });
+
+        // Date filter
+        const dateFilter = document.getElementById('dateFilter');
+        dateFilter.addEventListener('change', (e) => {
+            const selectedDate = e.target.value;
+            if (!selectedDate) {
+                getAllArticles().forEach(a => a.style.display = 'block');
+                return;
+            }
+
+            // Demo: lọc theo ngày (cần parse date từ article meta)
+            console.log('Filter by date:', selectedDate);
+        });
+
+        // Sort functionality
+        const sortBy = document.getElementById('sortBy');
+        sortBy.addEventListener('change', (e) => {
+            const sortType = e.target.value;
+            const container = document.getElementById('articlesContainer');
+            const articles = getAllArticles();
+
+            articles.sort((a, b) => {
+                if (sortType === 'quality') {
+                    const qualityA = parseFloat(a.querySelector('.quality-score .value')?.textContent || '0');
+                    const qualityB = parseFloat(b.querySelector('.quality-score .value')?.textContent || '0');
+                    return qualityB - qualityA;
+                } else if (sortType === 'comments') {
+                    const commentsA = parseInt(a.querySelector('.article-meta')?.textContent.match(/\d+/)?.[0] || '0');
+                    const commentsB = parseInt(b.querySelector('.article-meta')?.textContent.match(/\d+/)?.[0] || '0');
+                    return commentsB - commentsA;
+                }
+                return 0; // newest (default)
+            });
+
+            // Re-append sorted articles
+            articles.forEach(article => container.appendChild(article));
+        });
+
+        // Pagination
+        let currentPageNum = 1;
+        const totalPages = 43; // Demo value
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPageNum > 1) {
+                currentPageNum--;
+                document.getElementById('currentPage').textContent = currentPageNum;
+                // Load previous page data here
+                scrollToTop();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPageNum < totalPages) {
+                currentPageNum++;
+                document.getElementById('currentPage').textContent = currentPageNum;
+                // Load next page data here
+                scrollToTop();
+            }
+        });
+
+        // Load More button
+        document.getElementById('loadMore').addEventListener('click', () => {
+            const btn = document.getElementById('loadMore');
+            btn.innerHTML = '⏳ Đang tải...';
+            btn.disabled = true;
+
+            // Simulate loading
+            setTimeout(() => {
+                btn.innerHTML = '🔄 Tải Thêm Bài Viết';
+                btn.disabled = false;
+
+                // Update counts
+                const current = parseInt(document.getElementById('showingCount').textContent);
+                document.getElementById('showingCount').textContent = current + 10;
+            }, 1000);
+        });
+
+        // Scroll to top helper
+        function scrollToTop() {
+            document.getElementById('articlesContainer').scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Hiệu ứng hover cho pagination buttons
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.background = 'rgba(78, 204, 163, 0.3)';
+                btn.style.transform = 'translateY(-2px)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.background = 'rgba(78, 204, 163, 0.2)';
+                btn.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Modal functions
+        function openModal() {
+            document.getElementById('articleModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
+        function closeModal() {
+            document.getElementById('articleModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('articleModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // ESC key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Hiệu ứng hover và click cho article card
+        document.querySelectorAll('.article-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Open modal with article data
+                openModal();
+
+                // TODO: Populate modal with actual article data
+                // For now, it shows demo data
+            });
+        });
+    </script>
+
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- API Client -->
+    <script src="api.js"></script>
+
+    <!-- Initialize API when page loads -->
+    <script>
+        // Initialize API client
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing Yahoo News AI Crawler Dashboard...');
+
+            // Initialize API connection
+            if (window.API) {
+                window.API.init();
+            } else {
+                console.error('API client not loaded!');
+            }
+        });
+
+        // Crawler control functions
+        async function startCrawler() {
+            const mode = document.getElementById('crawlMode').value;
+            const headless = document.getElementById('headlessMode').checked;
+
+            try {
+                const result = await window.API.startCrawler({ mode, headless });
+                if (result.success) {
+                    alert('✓ Crawler đã bắt đầu!');
+                } else {
+                    alert('✗ Lỗi: ' + result.error);
+                }
+            } catch (error) {
+                alert('✗ Không thể kết nối đến server: ' + error.message);
+            }
+        }
+
+        async function stopCrawler() {
+            try {
+                const result = await window.API.stopCrawler();
+                if (result.success) {
+                    alert('✓ Crawler đã dừng!');
+                } else {
+                    alert('✗ Lỗi: ' + result.error);
+                }
+            } catch (error) {
+                alert('✗ Không thể kết nối đến server: ' + error.message);
+            }
+        }
+
+        async function exportData() {
+            try {
+                const result = await window.API.exportToExcel();
+                if (result.success) {
+                    alert(`✓ Đã export file: ${result.filename}`);
+                } else {
+                    alert('✗ Lỗi khi export dữ liệu');
+                }
+            } catch (error) {
+                alert('✗ Không thể export: ' + error.message);
+            }
+        }
+
+        // Pagination functions
+        async function prevPage() {
+            const currentPage = parseInt(document.getElementById('currentPage').textContent);
+            if (currentPage > 1) {
+                await loadPage(currentPage - 1);
+            }
+        }
+
+        async function nextPage() {
+            const currentPage = parseInt(document.getElementById('currentPage').textContent);
+            const totalPages = parseInt(document.getElementById('totalPages').textContent);
+            if (currentPage < totalPages) {
+                await loadPage(currentPage + 1);
+            }
+        }
+
+        async function loadPage(page) {
+            const searchTerm = document.getElementById('searchInput').value;
+            const category = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            try {
+                await window.API.loadArticles({
+                    page,
+                    search: searchTerm,
+                    category: category,
+                    sort: sortBy
+                });
+            } catch (error) {
+                console.error('Error loading page:', error);
+            }
+        }
+
+        // Search and filter handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        window.API.refreshArticles();
+                    }, 500); // Debounce 500ms
+                });
+            }
+
+            // Filter dropdowns
+            const categoryFilter = document.getElementById('categoryFilter');
+            const sortFilter = document.getElementById('sortFilter');
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', () => {
+                    window.API.refreshArticles();
+                });
+            }
+
+            if (sortFilter) {
+                sortFilter.addEventListener('change', () => {
+                    window.API.refreshArticles();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
